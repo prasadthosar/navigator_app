@@ -51,7 +51,6 @@
 //               ));
 //   }
 // }
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -82,6 +81,22 @@ class _MapPageState extends State<MapPage> {
     Location location = Location();
     _currentLocation = await location.getLocation();
     setState(() {});
+  }
+
+  // Function to recenter the map on the current location
+  void _recenterMap() {
+    if (_controller != null && _currentLocation != null) {
+      _controller?.animateCamera(
+        CameraUpdate.newLatLng(
+          LatLng(
+            _currentLocation!.latitude!,
+            _currentLocation!.longitude!,
+          ),
+        ),
+      );
+    } else {
+      print('Map or current location is unavailable.');
+    }
   }
 
   // Function to search for a location
@@ -155,12 +170,30 @@ class _MapPageState extends State<MapPage> {
                 ),
               ],
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => NavigationPage()));
-        },
-        child: Icon(Icons.directions),
+      floatingActionButton: Stack(
+        children: [
+          Positioned(
+            bottom: 80,
+            right: 16,
+            child: FloatingActionButton(
+              onPressed: () {
+                _recenterMap(); // Recenter the map on the current location
+              },
+              child: const Icon(Icons.my_location),
+            ),
+          ),
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: FloatingActionButton(
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => NavigationPage()));
+              },
+              child: const Icon(Icons.directions),
+            ),
+          ),
+        ],
       ),
     );
   }
