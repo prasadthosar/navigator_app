@@ -190,3 +190,264 @@ class _NavigationPageState extends State<NavigationPage> {
     );
   }
 }
+
+
+
+// import 'dart:convert';
+// import 'dart:math';
+// import 'package:flutter/material.dart';
+// import 'package:http/http.dart' as http;
+// import 'package:location/location.dart';
+// import 'package:maplibre_gl/maplibre_gl.dart';
+
+// class NavigationPage extends StatefulWidget {
+//   const NavigationPage({super.key});
+
+//   @override
+//   State<NavigationPage> createState() => _NavigationPageState();
+// }
+
+// class _NavigationPageState extends State<NavigationPage> {
+//   MapLibreMapController? _controller;
+//   LocationData? _currentLocation;
+//   LocationData? _previousLocation;
+//   List<LatLng> routePoints = [];
+//   String? currentRouteId;
+//   final TextEditingController _startController = TextEditingController();
+//   final TextEditingController _endController = TextEditingController();
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     _getLocationStream();
+//   }
+
+//   // Stream for continuously tracking user location
+//   void _getLocationStream() async {
+//     Location location = Location();
+//     location.onLocationChanged.listen((LocationData currentLocation) {
+//       setState(() {
+//         _previousLocation = _currentLocation;
+//         _currentLocation = currentLocation;
+//       });
+
+//       // Re-center the map on current location
+//       _controller?.animateCamera(
+//         CameraUpdate.newLatLng(
+//           LatLng(_currentLocation!.latitude!, _currentLocation!.longitude!),
+//         ),
+//       );
+
+//       // Update map's bearing based on direction of movement
+//       if (_previousLocation != null) {
+//         _updateBearing(_currentLocation!, _previousLocation!);
+//       }
+//     });
+//   }
+
+//   // Update the map bearing (rotation)
+//   void _updateBearing(LocationData newLocation, LocationData oldLocation) {
+//     double bearing = _calculateBearing(
+//       oldLocation.latitude!,
+//       oldLocation.longitude!,
+//       newLocation.latitude!,
+//       newLocation.longitude!,
+//     );
+
+//     _controller?.animateCamera(
+//       CameraUpdate.newCameraPosition(
+//         CameraPosition(
+//           target: LatLng(newLocation.latitude!, newLocation.longitude!),
+//           bearing: bearing,
+//           zoom: 15,
+//         ),
+//       ),
+//     );
+//   }
+
+//   double _calculateBearing(
+//       double startLat, double startLon, double endLat, double endLon) {
+//     double deltaLon = (endLon - startLon);
+//     double y = sin(deltaLon) * cos(endLat);
+//     double x = cos(startLat) * sin(endLat) -
+//         sin(startLat) * cos(endLat) * cos(deltaLon);
+//     double bearing = atan2(y, x);
+//     return bearing * 180 / pi; // Convert to degrees
+//   }
+
+//   // Request the route from GraphHopper and update the map
+//   Future<void> _requestRoute(LatLng start, LatLng end) async {
+//     final String apiUrl =
+//         'https://graphhopper.com/api/1/route?point=${start.latitude},${start.longitude}&point=${end.latitude},${end.longitude}&vehicle=car&key=806c21d6-616f-431e-b185-ce16f3a85cda&instructions=false';
+
+//     try {
+//       final response = await http.get(Uri.parse(apiUrl));
+
+//       if (response.statusCode == 200) {
+//         final Map<String, dynamic> data = json.decode(response.body);
+//         final String encodedPolyline = data['paths'][0]['points'];
+//         routePoints = _decodePolyline(encodedPolyline);
+
+//         // If there's an existing route, remove it
+//         if (currentRouteId != null) {
+//           _controller?.removeLine(currentRouteId! as Line);
+//         }
+
+//         // Add new route to the map
+//         Line line = _controller!.addLine(
+//           LineOptions(
+//             geometry: routePoints,
+//             lineColor: '#FF0000',
+//             lineWidth: 5.0,
+//           ),
+//         ) as Line;
+
+//         // Save the new route ID for future reference
+//         currentRouteId = line.id;
+//       } else {
+//         print('Failed to load route data');
+//       }
+//     } catch (e) {
+//       print('Error: $e');
+//     }
+//   }
+
+//   // Decode the polyline from GraphHopper response
+//   List<LatLng> _decodePolyline(String encoded) {
+//     List<LatLng> points = [];
+//     int index = 0, len = encoded.length;
+//     int lat = 0, lon = 0;
+
+//     while (index < len) {
+//       int b, shift = 0, result = 0;
+//       do {
+//         b = encoded.codeUnitAt(index++) - 63;
+//         result |= (b & 0x1f) << shift;
+//         shift += 5;
+//       } while (b >= 0x20);
+//       int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+//       lat += dlat;
+
+//       shift = 0;
+//       result = 0;
+//       do {
+//         b = encoded.codeUnitAt(index++) - 63;
+//         result |= (b & 0x1f) << shift;
+//         shift += 5;
+//       } while (b >= 0x20);
+//       int dlon = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+//       lon += dlon;
+
+//       points.add(LatLng(lat / 1E5, lon / 1E5));
+//     }
+
+//     return points;
+//   }
+
+//   // Recenter the map to the current location
+//   void _recenterMap() {
+//     if (_currentLocation != null) {
+//       _controller?.animateCamera(
+//         CameraUpdate.newLatLng(
+//           LatLng(_currentLocation!.latitude!, _currentLocation!.longitude!),
+//         ),
+//       );
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text('Navigation Page'),
+//       ),
+//       body: _currentLocation == null
+//           ? const Center(child: CircularProgressIndicator())
+//           : Column(
+//               children: [
+//                 Padding(
+//                   padding: const EdgeInsets.all(8.0),
+//                   child: Row(
+//                     children: [
+//                       Expanded(
+//                         child: TextField(
+//                           controller: _startController,
+//                           decoration: InputDecoration(
+//                             labelText: 'Start Location',
+//                           ),
+//                         ),
+//                       ),
+//                       const SizedBox(width: 8),
+//                       Expanded(
+//                         child: TextField(
+//                           controller: _endController,
+//                           decoration: InputDecoration(
+//                             labelText: 'End Location',
+//                           ),
+//                         ),
+//                       ),
+//                       IconButton(
+//                         icon: const Icon(Icons.search),
+//                         onPressed: () {
+//                           if (_startController.text.isNotEmpty &&
+//                               _endController.text.isNotEmpty) {
+//                             LatLng startLocation = LatLng(
+//                                 _currentLocation!.latitude!,
+//                                 _currentLocation!.longitude!);
+//                             // You would perform geocoding for the end location
+//                             // For simplicity, let's assume end location is given by LatLng(19.876, 75.343)
+//                             LatLng endLocation = LatLng(19.876, 75.343);
+//                             _requestRoute(startLocation, endLocation);
+//                           }
+//                         },
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//                 Expanded(
+//                   child: MapLibreMap(
+//                     initialCameraPosition: CameraPosition(
+//                       target: LatLng(_currentLocation!.latitude!,
+//                           _currentLocation!.longitude!),
+//                       zoom: 15,
+//                     ),
+//                     styleString:
+//                         "https://api.maptiler.com/maps/openstreetmap/style.json?key=dWavgdQGYhQi3IrgbwAh",
+//                     myLocationEnabled: true,
+//                     myLocationTrackingMode: MyLocationTrackingMode.tracking,
+//                     onMapCreated: (controller) {
+//                       _controller = controller;
+//                     },
+//                   ),
+//                 ),
+//               ],
+//             ),
+//       floatingActionButton: Stack(
+//         children: [
+//           Positioned(
+//             bottom: 80,
+//             right: 16,
+//             child: FloatingActionButton(
+//               onPressed: _recenterMap,
+//               child: const Icon(Icons.my_location),
+//             ),
+//           ),
+//           Positioned(
+//             bottom: 140,
+//             right: 16,
+//             child: FloatingActionButton(
+//               onPressed: () {
+//                 // Trigger navigation logic, for example, request a route
+//                 Navigator.pop(context);
+//               },
+//               child: const Icon(Icons.directions),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+
+
+
