@@ -5,6 +5,8 @@ import 'package:location/location.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 
 class NavigationPage extends StatefulWidget {
+  const NavigationPage({super.key});
+
   @override
   _NavigationPageState createState() => _NavigationPageState();
 }
@@ -158,7 +160,7 @@ class _NavigationPageState extends State<NavigationPage> {
                   padding: const EdgeInsets.all(8.0),
                   child: TextField(
                     controller: _endPointController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'End Point (Name)',
                     ),
                   ),

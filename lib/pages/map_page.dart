@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
+import 'package:navigation_app/hotel.dart';
 import 'package:navigation_app/pages/navigationpage.dart';
 
 class MapPage extends StatefulWidget {
@@ -139,6 +140,16 @@ class _MapPageState extends State<MapPage> {
               },
               child: const Icon(Icons.directions),
             ),
+          ),
+          Positioned(
+            bottom: 16,
+            left: 16,
+            child: FloatingActionButton(
+                child: const Icon(Icons.hotel),
+                onPressed: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => SearchPage()));
+                }),
           ),
         ],
       ),

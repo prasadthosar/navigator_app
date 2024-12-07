@@ -76,6 +76,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -86,6 +88,8 @@ class MyApp extends StatelessWidget {
 }
 
 class SearchPage extends StatefulWidget {
+  const SearchPage({super.key});
+
   @override
   _SearchPageState createState() => _SearchPageState();
 }
@@ -129,23 +133,24 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Location Search')),
+      appBar: AppBar(title: const Text('Location Search')),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: _controller,
-              decoration: InputDecoration(labelText: 'Enter location name'),
+              decoration:
+                  const InputDecoration(labelText: 'Enter location name'),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
                 searchLocation(_controller.text);
               },
-              child: Text('Search'),
+              child: const Text('Search'),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(_result),
           ],
         ),
